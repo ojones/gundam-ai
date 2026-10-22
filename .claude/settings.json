@@ -1,0 +1,155 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PYTHONPATH=/Users/oz/Documents/git/gundam-ai python3 -m telemetry.hook",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PYTHONPATH=/Users/oz/Documents/git/gundam-ai python3 -m telemetry.hook",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PYTHONPATH=/Users/oz/Documents/git/gundam-ai python3 -m telemetry.hook",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PYTHONPATH=/Users/oz/Documents/git/gundam-ai python3 -m telemetry.hook",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PYTHONPATH=/Users/oz/Documents/git/gundam-ai python3 -m telemetry.hook",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PYTHONPATH=/Users/oz/Documents/git/gundam-ai python3 -m telemetry.hook",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PYTHONPATH=/Users/oz/Documents/git/gundam-ai python3 -m telemetry.hook",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PermissionDenied": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PYTHONPATH=/Users/oz/Documents/git/gundam-ai python3 -m telemetry.hook",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PYTHONPATH=/Users/oz/Documents/git/gundam-ai python3 -m telemetry.hook",
+            "async": true
+          },
+          {
+            "type": "command",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && { git diff --quiet HEAD -- initial-specs.md docs CLAUDE.md || python3 -m unittest telemetry.spec_sync_test telemetry.invariants_test >&2 || exit 2; }",
+            "asyncRewake": true,
+            "timeout": 60,
+            "statusMessage": "Checking specs are in sync"
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PYTHONPATH=/Users/oz/Documents/git/gundam-ai python3 -m telemetry.hook",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PYTHONPATH=/Users/oz/Documents/git/gundam-ai python3 -m telemetry.hook",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PYTHONPATH=/Users/oz/Documents/git/gundam-ai python3 -m telemetry.hook",
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}

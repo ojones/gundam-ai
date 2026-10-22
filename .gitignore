@@ -218,3 +218,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+__pycache__/
+*.py[cod]
+.ruff_cache/
+.venv/
+.scratch/
+.DS_Store
