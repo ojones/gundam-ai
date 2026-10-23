@@ -50,6 +50,25 @@ class BuildEvent(unittest.TestCase):
 
     def test_an_identifier_with_odd_characters_is_not_kept(self):
         self.assertIsNone(build(raw_event("PreToolUse", tool_name="rm -rf /; echo", tool_use_id="x"))["tool_name"])
+    def test_real_bash_failure_texts_get_their_class(self):
+        cases = {
+            "Exit code 1\nls: /nonexistent: No such file or directory": "not_found",
+            "Exit code 1\ncat: /etc/sudoers: Permission denied": "permission",
+            "Exit code 6\ncurl: (6) Could not resolve host: nohost.example": "network",
+            "Exit code 7\n  % Total    % Received % Xferd": "other",
+        }
+        for error, expected in cases.items():
+            event = build(raw_event("PostToolUseFailure", tool_name="Bash", tool_use_id="t", error=error))
+            self.assertEqual(event["failure_class"], expected, error)
+
+    def test_words_that_merely_contain_a_keyword_are_not_classified(self):
+        for error in ("generate the report", "author field missing", "iterate over items"):
+            event = build(raw_event("PostToolUseFailure", tool_name="Bash", tool_use_id="t", error=error))
+            self.assertEqual(event["failure_class"], "other", error)
+
+    def test_a_real_payload_shape_keeps_only_allowlisted_fields(self):
+        payload = raw_event("PostToolUse", tool_name="Bash", tool_use_id="toolu_01", tool_input={"command": "ls"}, tool_response={"stdout": "x"}, duration_ms=12, prompt_id="p", effort={"level": "high"}, permission_mode="default", scratchpad_dir="/tmp/s")
+        self.assertEqual(set(build(payload)["metadata"]), {"correlation_quality"})
 
 
 if __name__ == "__main__":

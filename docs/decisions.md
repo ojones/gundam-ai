@@ -20,8 +20,8 @@ Read this before changing the code. It records what was decided while architecti
 
 ## Needs verification
 
-- **VER-01 Claude Code hook payload field names.** `allowlist.py` reads `hook_event_name`, `session_id`, `tool_name`, `tool_use_id`, `agent_id`, `agent_type`, `prompt`, `error`, `source`, `reason`, `tool_calls` from the hook JSON. These come from the spec's wording and memory of the hook documentation, not from captured payloads. Before the pilot, capture real payloads for each event in a throwaway directory, check the names, and keep sanitized samples as test fixtures.
-- **VER-02 Failure class vocabulary.** `schema.FAILURE_CLASSES` and the keyword table in `allowlist.py` are a first guess. Revisit against real failures.
+- **VER-01 Claude Code hook payload field names. Verified 2026-10-22** against captured key names and types for PreToolUse, PostToolUse, PostToolUseFailure, SubagentStart and SubagentStop (and live spool rows for PermissionDenied). Every field `allowlist.py` reads is present with the expected type; tool events carry `tool_use_id`, so correlation is exact. Real payloads also carry fields the allowlist deliberately ignores (`tool_input`, `tool_response`, `cwd`, `transcript_path`, `last_assistant_message`, `prompt_id`, `effort`). Raw samples were not kept because they contain paths and content.
+- **VER-02 Failure class vocabulary. Reviewed 2026-10-22.** A Bash failure error starts `Exit code N` followed by stderr. Keywords now match as patterns, so `generate` no longer reads as `rate_limit` and `author` no longer reads as `auth`. A failure whose stderr names nothing (for example curl's progress meter on exit 7) stays `other`; the exit code is not used.
 
 ## Open (from the spec, need an owner)
 

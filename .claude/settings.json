@@ -1,4 +1,12 @@
 {
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:forecast.weather.gov)",
+      "Bash(make health *)",
+      "Bash(make aggregate *)",
+      "Bash(make check *)"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {

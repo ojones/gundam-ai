@@ -8,19 +8,19 @@ class RejectedInput(ValueError):
 
 
 IDENTIFIER = re.compile(r"[A-Za-z0-9_.:\-]{1,128}")
-FAILURE_KEYWORDS = (
-    ("timed out", "timeout"),
-    ("timeout", "timeout"),
-    ("permission", "permission"),
-    ("not found", "not_found"),
-    ("no such file", "not_found"),
-    ("interrupt", "interrupted"),
-    ("invalid", "invalid_input"),
-    ("rate", "rate_limit"),
-    ("overload", "overloaded"),
-    ("auth", "auth"),
-    ("network", "network"),
-    ("connection", "network"),
+FAILURE_PATTERNS = tuple(
+    (re.compile(pattern), label)
+    for pattern, label in (
+        (r"timed out|timeout", "timeout"),
+        (r"permission|not permitted|operation not allowed", "permission"),
+        (r"not found|no such file", "not_found"),
+        (r"interrupt", "interrupted"),
+        (r"invalid", "invalid_input"),
+        (r"\brate.?limit|too many requests", "rate_limit"),
+        (r"overload", "overloaded"),
+        (r"\bauth(?:entication|orization)?\b|unauthorized", "auth"),
+        (r"network|connection|could not resolve host", "network"),
+    )
 )
 
 
@@ -40,7 +40,7 @@ def bounded(value, allowed):
 def classify_failure(raw):
     text = raw.get("error")
     haystack = text.lower() if isinstance(text, str) else ""
-    return next((label for keyword, label in FAILURE_KEYWORDS if keyword in haystack), "other")
+    return next((label for pattern, label in FAILURE_PATTERNS if pattern.search(haystack)), "other")
 
 
 def event_name(raw):
