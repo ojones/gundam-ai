@@ -27,3 +27,4 @@ The "must" rules of the collector, each with an ID. `telemetry/invariants_test.p
 | INV-21 | A sample event can be followed from hook input through the queue and a fake ingestion endpoint to an aggregate. | Acceptance criteria | AC-05 | implemented |
 | INV-22 | The privacy notice says what is collected, how to inspect it, how to disable it and how to request deletion. | Dashboard and data access | AC-06 | implemented |
 | INV-23 | Dashboards label proxy metrics as proxies and publish no composite productivity score. | Metric definitions | AC-07 | pending |
+| INV-24 | The context-size reminders (status line and nudge hooks) use no network, are not on the telemetry hook path and are absent from the managed telemetry settings. | Context-size nudge | - | implemented |

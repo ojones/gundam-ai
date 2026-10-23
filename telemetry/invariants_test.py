@@ -226,6 +226,14 @@ class Invariants(unittest.TestCase):
     def test_inv23_dashboards_label_proxies(self):
         raise NotImplementedError
 
+    def test_inv24_the_context_reminders_stay_out_of_the_telemetry_path(self):
+        settings = json.dumps(managed_settings.managed_settings(include_optional=True))
+        for module in ("context_size", "context_nudge", "statusline"):
+            self.assertEqual(network_imports(module), set())
+            self.assertNotIn(module, HOOK_PATH_MODULES)
+            self.assertNotIn(module, settings)
+        self.assertNotIn("additionalContext", settings)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -143,6 +143,9 @@ telemetry/
 ├── uploader.py      # batching, auth, retries, acknowledgements
 ├── service.py       # user-level background service entry point
 ├── config.py        # environment/config validation; no secrets in repo
+├── context_size.py  # context-size reading and thresholds shared by the two below
+├── context_nudge.py # optional context-size nudge hooks (not telemetry)
+├── statusline.py    # optional status line segment showing context size
 └── tests/
 ```
 
@@ -192,6 +195,27 @@ Conceptual pattern (the exact event groups and command path will be finalized fo
 ```
 
 Use equivalent groups for other events. Do not add telemetry to `PreToolUse` unless needed to pair start times; if used, keep it async and metadata-only. Do not use async output to inject context: the collector should emit no response fields.
+
+## Context-size nudge
+
+Two optional ways to remind a developer to hand off a long session. Neither is part of the telemetry pipeline: they record no event, reach no spool or network, and are never registered in managed telemetry settings. They exist so engineers keep working without being blocked, so neither may add noticeable latency to a prompt.
+
+Shared rules:
+
+- Context size is the sum of `input_tokens`, `cache_read_input_tokens` and `cache_creation_input_tokens` of the most recent main-thread assistant message. Only these numbers are read; no transcript content is kept, logged or forwarded.
+- The first threshold is 100000 tokens, then one more each time the size passes another 50000 (150000, 200000, and so on). A reminder may arrive up to one turn late.
+- Any failure (missing transcript, unreadable usage, unwritable state) produces no output and exit status 0.
+
+Status line segment (`statusline.py`):
+
+- Reads `context_window.total_input_tokens` from the status line input, so it parses no transcript and keeps no state.
+- Shows the size in thousands of tokens, dimmed below 100000, amber from 100000 and red from 150000, with a short hint to consider a handoff once past 100000. It is passive: it never talks to Claude.
+
+Hooks (`context_nudge.py`):
+
+- An async `Stop` command (`record`) reads the transcript tail once per turn, off the prompt path. When the size passes a threshold not yet announced in this session it leaves a small pending file; it never writes output.
+- A synchronous `UserPromptSubmit` command (`deliver`) only checks for that pending file. If present it removes it and returns `additionalContext` asking Claude to tell the developer, in one sentence, the approximate token count and that they can run the handoff skill to continue in a fresh session. Otherwise it exits at once. This is the one place the "no response fields" rule for telemetry commands does not apply, and it must stay a different command from the telemetry collector. It never blocks or alters the prompt.
+- The highest announced threshold is kept per session in the user data directory. If the context shrinks (for example after compaction) the stored threshold drops with it, so growth past a threshold fires again.
 
 ## Dashboard and data access
 
