@@ -8,6 +8,8 @@ class RejectedInput(ValueError):
 
 
 IDENTIFIER = re.compile(r"[A-Za-z0-9_.:\-]{1,128}")
+TYPED_SKILL = re.compile(r"/([A-Za-z0-9_.:\-]{1,128})(?:\s|$)")
+SKILL_TOOL = "Skill"
 FAILURE_PATTERNS = tuple(
     (re.compile(pattern), label)
     for pattern, label in (
@@ -50,9 +52,16 @@ def event_name(raw):
     return name
 
 
+def typed_skill(prompt):
+    match = TYPED_SKILL.match(prompt)
+    return match.group(1) if match else None
+
+
 def prompt_metadata(raw):
     prompt = raw.get("prompt")
-    return {"prompt_length_bucket": schema.prompt_length_bucket(len(prompt))} if isinstance(prompt, str) else {}
+    if not isinstance(prompt, str):
+        return {}
+    return {"prompt_length_bucket": schema.prompt_length_bucket(len(prompt)), "skill_name": typed_skill(prompt)}
 
 
 def batch_metadata(raw):
@@ -60,9 +69,16 @@ def batch_metadata(raw):
     return {"batch_size": len(calls)} if isinstance(calls, list) else {}
 
 
+def invoked_skill(raw):
+    tool_input = raw.get("tool_input")
+    if raw.get("tool_name") != SKILL_TOOL or not isinstance(tool_input, dict):
+        return None
+    return identifier(tool_input, "skill")
+
+
 def tool_metadata(raw):
     quality = "tool_use_id" if identifier(raw, "tool_use_id") else "none"
-    return {"correlation_quality": quality}
+    return {"correlation_quality": quality, "skill_name": invoked_skill(raw)}
 
 
 def session_metadata(name, raw):

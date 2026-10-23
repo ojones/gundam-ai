@@ -9,7 +9,7 @@ import unittest
 from contextlib import closing
 from pathlib import Path
 
-from telemetry import allowlist, events, fake_ingest, hook, managed_settings, schema, service, spool, uploader
+from telemetry import allowlist, dashboard_data, dashboard_html, events, fake_ingest, hook, managed_settings, schema, service, spool, uploader
 from telemetry.config import Config, load_config
 from telemetry.support import NOW, SECRET, open_spool, raw_event, sensitive_fields, start_fake_ingest, temp_config
 
@@ -125,6 +125,19 @@ class Invariants(unittest.TestCase):
             event = build(raw_event("UserPromptSubmit", prompt="x" * length))
             self.assertEqual(event["metadata"], {"prompt_length_bucket": bucket})
 
+    def test_inv25_a_skill_is_only_its_name_never_its_arguments_or_the_prompt(self):
+        tool = build(raw_event("PostToolUse", tool_name="Skill", tool_use_id="tu-1", tool_input={"skill": "plugin:tdd", "args": SECRET}))
+        typed = build(raw_event("UserPromptSubmit", prompt=f"/tdd {SECRET}"))
+        self.assertEqual((tool["metadata"]["skill_name"], typed["metadata"]["skill_name"]), ("plugin:tdd", "tdd"))
+        self.assertNotIn(SECRET, json.dumps([tool, typed]))
+
+    def test_inv25_only_a_skill_shaped_start_counts(self):
+        prompts = ("fix /tdd now", "/Users/x/file.py", "//tdd", "/", "/" + "a" * 129, f"/bad;{SECRET}")
+        for prompt in prompts:
+            self.assertNotIn("skill_name", build(raw_event("UserPromptSubmit", prompt=prompt))["metadata"], prompt)
+        other = build(raw_event("PostToolUse", tool_name="Bash", tool_use_id="tu-1", tool_input={"skill": "tdd"}))
+        self.assertNotIn("skill_name", other["metadata"])
+
     def test_inv10_a_failure_is_a_bounded_class_without_error_text(self):
         for error in ("Connection reset", "weird " + SECRET, None, 42):
             event = build(raw_event("StopFailure", error=error))
@@ -222,9 +235,14 @@ class Invariants(unittest.TestCase):
         for heading in ("## What is collected", "## How to inspect it", "## How to disable it", "## How to request deletion"):
             self.assertIn(heading, text)
 
-    @unittest.skip("pending: dashboard")
     def test_inv23_dashboards_label_proxies(self):
-        raise NotImplementedError
+        with closing(fake_ingest.open_store(":memory:")) as conn:
+            page = dashboard_html.render(dashboard_data.collect(conn))
+        self.assertEqual(page.count('class="proxy">Proxy:'), len(dashboard_html.NOTES))
+        self.assertNotIn("score", page.lower())
+        self.assertEqual(network_imports("dashboard_html"), set())
+        self.assertIn("127.0.0.1", (PACKAGE / "dashboard.py").read_text(encoding="utf-8"))
+        self.assertNotIn("dashboard", " ".join(HOOK_PATH_MODULES))
 
     def test_inv24_the_context_reminders_stay_out_of_the_telemetry_path(self):
         settings = json.dumps(managed_settings.managed_settings(include_optional=True))

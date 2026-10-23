@@ -26,5 +26,6 @@ The "must" rules of the collector, each with an ID. `telemetry/invariants_test.p
 | INV-20 | Health (last upload, queue depth, dropped, expired) is available locally without a network listener. | Collector behavior (uploader) | AC-04 | implemented |
 | INV-21 | A sample event can be followed from hook input through the queue and a fake ingestion endpoint to an aggregate. | Acceptance criteria | AC-05 | implemented |
 | INV-22 | The privacy notice says what is collected, how to inspect it, how to disable it and how to request deletion. | Dashboard and data access | AC-06 | implemented |
-| INV-23 | Dashboards label proxy metrics as proxies and publish no composite productivity score. | Metric definitions | AC-07 | pending |
+| INV-23 | Dashboards label proxy metrics as proxies and publish no composite productivity score. | Metric definitions | AC-07 | implemented |
 | INV-24 | The context-size reminders (status line and nudge hooks) use no network, are not on the telemetry hook path and are absent from the managed telemetry settings. | Context-size nudge | - | implemented |
+| INV-25 | A skill is recorded only as an identifier-shaped name, from a `Skill` tool call or from a prompt that starts with `/name`; skill arguments, the rest of the prompt and the inputs of other tools never appear in the event. | Event schema | AC-03 | implemented |

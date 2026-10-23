@@ -4,7 +4,7 @@ Status: draft, to be finished with the team before any pilot (see the rollout pl
 
 ## What is collected
 
-Event name, time, a pseudonymous session key, the organization's pseudonymous user, team and repository keys, tool name and tool-use ID, agent type, a coarse outcome, a bounded failure class, and a few allowlisted metadata fields (the field list is `METADATA_FIELDS` in `telemetry/schema.py`). Never collected: prompt text, source code, file contents or names, commands, tool arguments or output, Claude's responses, environment variables, credentials.
+Event name, time, a pseudonymous session key, the organization's pseudonymous user, team and repository keys, tool name and tool-use ID, agent type, a coarse outcome, a bounded failure class, and a few allowlisted metadata fields (the field list is `METADATA_FIELDS` in `telemetry/schema.py`), including the name of each skill that runs. A skill name is recorded when Claude invokes a skill, or when a prompt starts with `/name`; every such name is kept, so a built-in command (for example `/clear`), or a private skill whose name mentions a project or client, is recorded too. Skill arguments and the rest of the prompt are not. Never collected: prompt text, source code, file contents or names, commands, tool arguments or output, Claude's responses, environment variables, credentials.
 
 ## How to inspect it
 

@@ -87,7 +87,7 @@ All events use a versioned, minimal envelope. Example fields:
   "outcome": "success",
   "duration_ms": null,
   "failure_class": null,
-  "metadata": {"prompt_length_bucket": null}
+  "metadata": {"prompt_length_bucket": null, "skill_name": null}
 }
 ```
 
@@ -97,6 +97,7 @@ Requirements:
 - User identity is a pseudonymous stable key supplied by the organization, not an email or display name. Keep identity mapping outside the telemetry store and restrict access to it.
 - Repository identity should be a configured repository slug or keyed hash. Do not send arbitrary paths, remote URLs, branch names, or file paths by default.
 - `metadata` has a strict allowlist. Prompt length should be coarse buckets (for example, `0-199`, `200-999`, `1000+`), not exact text or a recoverable representation.
+- `skill_name` records which skill ran, as an identifier only (letters, digits and `_ . : -`, at most 128 characters; a plugin prefix such as `plugin:skill` is kept). It is set on tool events where `tool_name` is `Skill` (the name Claude invoked) and on `UserPromptSubmit` when the prompt begins with `/name` followed by whitespace or the end of the prompt (a skill or command the developer typed). Skill arguments, the rest of the prompt and any other tool input are never collected. Every skill name is recorded; a name that is not a skill (a built-in command, or a private skill whose name reveals a project) is recorded like any other, which the privacy notice states.
 - Normalize failures to bounded categories; do not store stack traces, shell stderr, tool result text, or API error bodies.
 - Never collect environment variables, authentication data, raw commands, file names, code diffs, prompt text, or Claude's response text in the baseline deployment.
 
@@ -106,7 +107,8 @@ Requirements:
 
 - Active users per day/week: distinct pseudonymous users with at least one `SessionStart`.
 - Sessions per user and repository: count of unique session IDs.
-- Session duration: `SessionEnd` minus `SessionStart`; report median and percentiles, excluding incomplete sessions or showing them separately.
+- Session duration: `SessionEnd` minus `SessionStart`; report median and percentiles, excluding incomplete sessions or showing them separately. Show the distribution in coarse length buckets (under 5 minutes, 5 to 15, 15 to 30, 30 to 60, 1 to 2 hours, over 2 hours).
+- Time of day: `UserPromptSubmit` counts by hour of day and by day of week, derived from `occurred_at` and shown in the time zone of the machine that renders the dashboard. This adds no event field. It describes when the team works, not how well; label it a proxy, never target it, and do not break it down per person.
 - Prompts per session: count `UserPromptSubmit` events; report a distribution, not a target.
 
 ### Workflow patterns
@@ -114,6 +116,7 @@ Requirements:
 - Tool calls by tool name and repository: count `PreToolUse`, deduplicated by tool-use ID.
 - Tool success/failure rate: join `PostToolUse` and `PostToolUseFailure` to tool-use IDs; show unmatched starts separately.
 - Tool duration: pair start/completion timestamps where supported; present medians and percentiles.
+- Skill usage: count of invocations per `skill_name`, separately for skills Claude invoked (`PostToolUse` or `PostToolUseFailure` with `tool_name` `Skill`, so a skill that fails still counts) and skills the developer typed (`UserPromptSubmit`), so a skill reached both ways is not silently counted once. Show totals only, not per user.
 - Subagent usage: sessions with `SubagentStart`, starts per session, and duration/outcome where pairing is possible.
 - Validation activity: count eligible test/lint/type-check commands only if tool inputs can be mapped to a safe, fixed command category without retaining raw commands. Display as “validation command observed,” not “tests passed,” unless independently verified by CI.
 
@@ -221,8 +224,8 @@ Hooks (`context_nudge.py`):
 
 Start with aggregate views:
 
-1. Adoption trend: active users, sessions, and prompts by week.
-2. Workflow mix: tool calls by category, subagent use, and validation-command observed rate.
+1. Adoption trend: active users, sessions, and prompts by week; session length distribution and prompts by hour of day and day of week.
+2. Workflow mix: tool calls by category, skill invocations by skill name, subagent use, and validation-command observed rate.
 3. Reliability: tool/API failure rates, permission denials, unmatched/incomplete sessions.
 4. Efficiency indicators: session and tool-duration distributions, calls/retries per session.
 5. CI join: validation outcomes from the CI system, keyed by repository and commit/PR reference if the organization approves that linkage.

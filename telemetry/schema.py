@@ -17,7 +17,7 @@ ENVELOPE_FIELDS = (
     "failure_class",
     "metadata",
 )
-METADATA_FIELDS = ("prompt_length_bucket", "batch_size", "correlation_quality", "agent_id", "source", "end_reason")
+METADATA_FIELDS = ("prompt_length_bucket", "batch_size", "correlation_quality", "agent_id", "source", "end_reason", "skill_name")
 
 START_SOURCES = ("startup", "resume", "clear", "compact")
 END_REASONS = ("clear", "logout", "prompt_input_exit", "other")

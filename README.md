@@ -8,7 +8,7 @@ Developers: start with [CLAUDE.md](CLAUDE.md). The spec is [initial-specs.md](in
 
 Capture and upload work locally: hooks feed a SQLite spool, an uploader sends batches to a fake ingestion server on `localhost:8080`. **Nothing leaves your machine.** Cloud infrastructure is a later step (DEC-14).
 
-Run the local stack: `make token` once, then `make ingest` and `make uploader` in two terminals (or `make install-local` to run both under launchd). `make health` shows queue depth and upload status; `make aggregate` shows what the fake server ingested.
+Run the local stack: `make token` once, then `make up` to start the fake server, dashboard and uploader in the background (`make down` stops them; it stops only what `make up` started, not a launchd uploader; logs are in `/tmp/claude-telemetry/`). Or run `make ingest` and `make uploader` in two terminals, or `make install-local` to run them under launchd. `make health` shows queue depth and upload status; `make aggregate` shows what the fake server ingested, and `make dashboard` serves it as a page on http://127.0.0.1:8081/.
 
 ## Use it in a live session
 
@@ -69,6 +69,10 @@ It should print nothing and exit 0.
 - Stop collecting: remove the telemetry hooks from settings.json and start a new session.
 - Delete what is stored locally: remove the spool directory.
 - Server-side deletion: the process is not decided yet (see docs/privacy.md).
+
+## Context-size reminders (optional)
+
+Two optional ways to be reminded to hand off a long session, trialled side by side (DEC-19). Neither records telemetry or uses the network. `python3 -m telemetry.statusline` is a status line command that shows the context size and a hint past 100k tokens. `python3 -m telemetry.context_nudge record` (async `Stop` hook) and `deliver` (`UserPromptSubmit` hook) ask Claude to tell you once per threshold. See the "Context-size nudge" section of the spec.
 
 ## What to expect
 

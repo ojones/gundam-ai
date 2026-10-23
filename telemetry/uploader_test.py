@@ -9,7 +9,7 @@ from telemetry.support import open_spool, start_fake_ingest, temp_config
 
 def event(event_id, **overrides):
     base = {key: None for key in ("schema_version", "event_id", "event_name", "occurred_at", "session_id", "user_id", "team_id", "repo_id", "tool_name", "tool_use_id", "agent_type", "outcome", "duration_ms", "failure_class")}
-    return {**base, "schema_version": 1, "event_id": event_id, "event_name": "Stop", "session_id": "s1", "metadata": {}, **overrides}
+    return {**base, "schema_version": 1, "event_id": event_id, "event_name": "Stop", "occurred_at": "2026-10-21T17:00:00Z", "session_id": "s1", "metadata": {}, **overrides}
 
 
 def enqueue(conn, config, *events):

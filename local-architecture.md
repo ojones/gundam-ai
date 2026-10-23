@@ -8,7 +8,7 @@ flowchart TB
     end
 
     subgraph HOOK["Hook process (per event, short-lived, p95 &lt; 100 ms)"]
-        H1["python3 telemetry/hook.py"]
+        H1["python3 -m telemetry.hook"]
         H2["1. read stdin JSON (size limit)<br/>2. validate event name + IDs<br/>3. allowlist fields, drop prompts / tool input / output<br/>4. bucket prompt length, normalize failure class<br/>5. exit silently: no stdout, no decision JSON"]
     end
 
@@ -22,17 +22,17 @@ flowchart TB
     subgraph SVC["Background uploader"]
         LA["launchd LaunchAgent<br/>~/Library/LaunchAgents/*.plist<br/>runs service.py at login"]
         UP["uploader.py<br/>lock/lease, claim batch,<br/>idempotency key, backoff + jitter,<br/>ack then delete, expire old rows"]
-        HEALTH["local health: last upload,<br/>queue depth, dropped/expired<br/>(CLI or unix socket, no public listener)"]
+        HEALTH["local health: last upload,<br/>queue depth, dropped/expired<br/>(CLI only, no listener)"]
     end
 
     KC[("macOS Keychain<br/>auth token / org key")]
 
     subgraph FAKE["Local fake ingestion (prototype)"]
         API["localhost:8080 fake API<br/>auth, schema/version check,<br/>reject unexpected fields, idempotent"]
-        STORE[("ingested.sqlite / DuckDB")]
+        STORE[("ingested-v4.sqlite")]
     end
 
-    DASH["Aggregate dashboard<br/>(Streamlit / notebook)<br/>adoption, workflow mix, reliability,<br/>efficiency, CI join (later)"]
+    DASH["Aggregate dashboard<br/>(stdlib http.server, make dashboard)<br/>adoption, workflow mix, reliability,<br/>efficiency, CI join (later)"]
 
     EV --> SET -->|"async, non-blocking"| H1 --> H2
     H2 -->|"INSERT, short busy timeout"| DB
@@ -83,7 +83,7 @@ sequenceDiagram
             U->>U: backoff with jitter, rows stay queued
         else permanent (schema / auth)
             A-->>U: 4xx
-            U->>Q: mark failed, no endless retry
+            U->>Q: delete rows, count as rejected
         end
     end
     A->>D: aggregate queries (sessions, tool success, failures)
