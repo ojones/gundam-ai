@@ -68,7 +68,7 @@ It should print nothing and exit 0.
 
 - Stop collecting: remove the telemetry hooks from settings.json and start a new session.
 - Delete what is stored locally: remove the spool directory.
-- Server-side deletion: the process is not decided yet (see docs/privacy.md).
+- Delete what the local fake server stored: remove `~/Library/Application Support/claude-telemetry-ingest`. A shared server's deletion process is not decided yet (see docs/privacy.md).
 
 ## Context-size reminders (optional)
 

@@ -6,6 +6,10 @@ Build an opt-in, transparent telemetry system that helps an engineering team und
 
 Treat the metrics as workflow indicators, not individual productivity scores. High activity, low activity, or a particular tool mix is not by itself evidence of success or performance.
 
+## Current scope
+
+This implementation runs locally on one developer's machine against a fake ingestion endpoint on localhost. The collector, spool, uploader, local dashboard and context-size reminders are built. The rollout plan and the open deployment decisions below describe the later team deployment; they have not started and nothing in the local build depends on them.
+
 ## Recommendation: Python collector, Claude Code command hooks
 
 Use **Python for the event collector, local queue, uploader, and reporting transforms**. It is a good fit for JSON processing, SQLite, HTTP clients, and data pipelines, and it matches the maintainer's preference. Claude Code runs command hooks, so the collector can be launched by a `python3`/`python` command; shell should only be used for a thin platform launcher if needed.
@@ -243,6 +247,8 @@ Use minimum group-size thresholds for team comparisons. Restrict row-level event
 
 ## Rollout plan
 
+Status: step 1 (local prototype) is done; steps 2 to 5 have not started.
+
 1. **Local prototype:** use a disposable local SQLite queue and a fake ingestion endpoint; inspect emitted records to confirm that sensitive fields are absent.
 2. **Pilot:** enable for a small volunteer group, publish the metric definitions and privacy notice, and measure hook process overhead, queue growth, and delivery success.
 3. **Tune:** reduce event volume, revise buckets, fix platform issues, and verify that uploads survive sleep, network loss, and session shutdown.
@@ -260,6 +266,8 @@ Use minimum group-size thresholds for team comparisons. Restrict row-level event
 - Published dashboards label proxies accurately and do not claim that session activity alone measures productivity or code quality.
 
 ## Open deployment decisions
+
+Status: all undecided. The local build codes against a fake endpoint and keeps these choices behind `config.py`.
 
 The implementation can be written independently of these choices, but connecting it to a real team requires:
 
